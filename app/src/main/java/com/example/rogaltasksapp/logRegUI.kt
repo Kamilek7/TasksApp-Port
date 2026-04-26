@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.rogaltasksapp.ui.theme.ErrorCol
 
 fun checkVals(login:String,  haslo:String) : String
 {
@@ -54,35 +55,30 @@ fun Login(nav: NavHostController, viewModel : TaskViewModel)
     var check by remember {mutableStateOf("Wpisz login i hasło!")}
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010)
     )
     {
             padding->
         Column(modifier = Modifier.padding(padding).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally)
         {
-            Text("Zaloguj się", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Zaloguj się", fontSize = 22.sp)
             Spacer(Modifier.height(24.dp))
-            Text("Login", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Login", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = login,
                 placeholder = {Text("Login")},
                 onValueChange = {login=it; check=checkVals(login,pass)},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 )
             )
             Spacer(Modifier.height(24.dp))
-            Text("Hasło", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Hasło", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = pass,
                 onValueChange = {pass=it; check=checkVals(login,pass)},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 ),
                 visualTransformation = if (showPassword) {
@@ -101,16 +97,16 @@ fun Login(nav: NavHostController, viewModel : TaskViewModel)
                 },
             )
             Spacer(Modifier.height(16.dp))
-            Text(text=if (check!="") check else uiState.info ?: "", color=Color.Red)
+            Text(text=if (check!="") check else uiState.info ?: "", color= ErrorCol)
             Spacer(Modifier.height(24.dp))
             Button(onClick={
                 nav.navigate(Screen.Rejestrowanie.route)
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFF80571F)))
+            },)
             {Text("Zarejestuj się")}
             Button(onClick={
                 viewModel.login(login, pass)
 
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFFA67126)))
+            })
             {Text("Zaloguj się")}
         }
     }
@@ -127,35 +123,30 @@ fun Rejestruj(nav: NavHostController, viewModel : TaskViewModel)
     var check by remember {mutableStateOf("Wpisz login i hasło!")}
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010)
     )
     {
             padding->
         Column(modifier = Modifier.padding(padding).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally)
         {
-            Text("Załóż konto", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Załóż konto", fontSize = 22.sp)
             Spacer(Modifier.height(24.dp))
-            Text("Login", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Login", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = login,
                 placeholder = {Text("Login")},
                 onValueChange = {login=it; check=checkVals(login,pass)},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 )
             )
             Spacer(Modifier.height(24.dp))
-            Text("Hasło", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Hasło", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = pass,
                 onValueChange = {pass=it; check=checkVals(login,pass)},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 ),
                 visualTransformation = if (showPassword) {
@@ -174,16 +165,16 @@ fun Rejestruj(nav: NavHostController, viewModel : TaskViewModel)
                 },
             )
             Spacer(Modifier.height(16.dp))
-            Text(text=if (check!="") check else uiState.info ?: "", color=Color.Red)
+            Text(text=if (check!="") check else uiState.info ?: "", color=ErrorCol)
             Spacer(Modifier.height(24.dp))
             Button(onClick={
                 nav.navigate(Screen.Logowanie.route)
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFF80571F)))
+            })
             {Text("Zaloguj się")}
             Button(onClick={
                 viewModel.register(login, pass)
 
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFFA67126)))
+            })
             {Text("Zarejestruj się")}
         }
     }

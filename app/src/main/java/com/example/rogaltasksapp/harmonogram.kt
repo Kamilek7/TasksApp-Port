@@ -49,7 +49,6 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
 
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010),
         bottomBar={DolnePrzyciski(nav)},
     )
     { padding ->
@@ -59,7 +58,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            Text("Harmonogram", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Harmonogram", fontSize = 22.sp)
             ExposedDropdownMenuBox(
                 expanded = selectExpanded,
                 onExpandedChange = { selectExpanded = !selectExpanded }
@@ -74,10 +73,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                     },
                     modifier = Modifier.menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF80571F),
-                        focusedTextColor = Color(0xfffafafa),
                         unfocusedTextColor = Color(0xffeaeaea),
-                        focusedLabelColor = Color(0xFF80571F),
                     ),
                 )
 
@@ -101,7 +97,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
             {
                 var newName by remember {mutableStateOf("")}
                 Spacer(Modifier.height(16.dp))
-                Text("Nowy wpis", color = Color(0xfffafafa), fontSize = 22.sp)
+                Text("Nowy wpis", fontSize = 22.sp)
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = {})
                 {
@@ -114,8 +110,6 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                     placeholder = {Text("Nazwa wpisu")},
                     onValueChange = {newName=it},
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF80571F),
-                        focusedTextColor = Color(0xfffafafa),
                         unfocusedTextColor = Color(0xffeaeaea)
                     )
                 )
@@ -123,7 +117,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
             else
             {
                 Spacer(Modifier.height(16.dp))
-                Text("Edytuj wpis", color = Color(0xfffafafa), fontSize = 22.sp)
+                Text("Edytuj wpis", fontSize = 22.sp)
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = {})
                 {
@@ -145,10 +139,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                     },
                     modifier = Modifier.menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF80571F),
-                        focusedTextColor = Color(0xfffafafa),
                         unfocusedTextColor = Color(0xffeaeaea),
-                        focusedLabelColor = Color(0xFF80571F),
                 ),
                 )
 
@@ -174,8 +165,6 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                 label = {Text("Odstep")},
                 onValueChange = {intervalSelect=it},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 ),
                 isError = intervalSelect.isBlank() || intervalSelect.toIntOrNull() == null

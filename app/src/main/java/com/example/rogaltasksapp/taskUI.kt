@@ -145,16 +145,14 @@ fun Zadania(nav: NavHostController, viewModel : TaskViewModel)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010),
         bottomBar={DolnePrzyciski(nav)},
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { nav.navigate(NavigationScreens.AddTask.route) },
-                containerColor = Color(0xFFeaba7b)
             )
             {
-                Icon(NavigationScreens.AddTask.icon, contentDescription = "", tint=Color(0xFF606060))
+                Icon(NavigationScreens.AddTask.icon, contentDescription = "",)
             }
         },
     )

@@ -44,7 +44,6 @@ fun Ustawienia(nav: NavHostController, viewModel : TaskViewModel)
 {
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010),
         bottomBar={DolnePrzyciski(nav)},
     )
     { padding ->
@@ -53,12 +52,12 @@ fun Ustawienia(nav: NavHostController, viewModel : TaskViewModel)
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            Text("Ustawienia", color = Color(0xfffafafa), fontSize = 32.sp)
+            Text("Ustawienia",  fontSize = 32.sp)
             Spacer(Modifier.height(24.dp))
             Button(onClick={
                 viewModel.logout()
 
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFFA67126)))
+            })
             {Text("Wyloguj się")}
         }
     }

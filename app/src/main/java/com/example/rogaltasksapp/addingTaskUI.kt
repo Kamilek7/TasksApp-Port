@@ -85,7 +85,6 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
     val scope = rememberCoroutineScope()
     Scaffold(
         Modifier.fillMaxWidth(),
-        containerColor=Color(0xFF101010),
         bottomBar={DolnePrzyciski(nav)},
     )
     {
@@ -94,22 +93,20 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
             modifier=Modifier.padding(padding).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            Text("Nowe Zadanie", color = Color(0xfffafafa), fontSize = 32.sp)
+            Text("Nowe Zadanie",  fontSize = 32.sp)
             Spacer(Modifier.height(32.dp))
-            Text("Nazwa", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Nazwa", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = text,
                 placeholder = {Text("Nakarm psa")},
                 onValueChange = {text=it},
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF80571F),
-                    focusedTextColor = Color(0xfffafafa),
                     unfocusedTextColor = Color(0xffeaeaea)
                 )
             )
             Spacer(Modifier.height(16.dp))
-            Text("Czas", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Czas", fontSize = 22.sp)
             Spacer(Modifier.height(16.dp))
             Checkbox(
                 checked = !disableTime,
@@ -125,12 +122,10 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
                     Modifier.padding(horizontal = 78.dp).border(1.dp, Color(0xff303030), shape = RoundedCornerShape(16.dp)).padding(start=30.dp, end=30.dp, top=18.dp, bottom=36.dp),
                     horizontalAlignment = Alignment.CenterHorizontally)
                 {
-                    Text("Data", color = Color(0xfffafafa), fontSize = 16.sp)
+                    Text("Data", fontSize = 16.sp)
                     Box() {
                         OutlinedTextField(
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF80571F),
-                                focusedTextColor = Color(0xfffafafa),
                                 unfocusedTextColor = Color(0xffeaeaea)
                             ),
                             value = selectedDate,
@@ -165,12 +160,10 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
                         }
                     }
                     Spacer(Modifier.height(16.dp))
-                    Text("Godzina", color = Color(0xfffafafa), fontSize = 16.sp)
+                    Text("Godzina", fontSize = 16.sp)
                     Box() {
                         OutlinedTextField(
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF80571F),
-                                focusedTextColor = Color(0xfffafafa),
                                 unfocusedTextColor = Color(0xffeaeaea)
                             ),
                             value = String.format(Locale.getDefault(), "%02d:%02d", timePickerState.hour,timePickerState.minute),
@@ -209,7 +202,7 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
 
 
             Spacer(Modifier.height(16.dp))
-            Text("Rodzic", color = Color(0xfffafafa), fontSize = 22.sp)
+            Text("Rodzic", fontSize = 22.sp)
             ExposedDropdownMenuBox(
                 expanded = selectExpanded,
                 onExpandedChange = { selectExpanded = !selectExpanded }
@@ -224,10 +217,7 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
                     },
                     modifier = Modifier.menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF80571F),
-                        focusedTextColor = Color(0xfffafafa),
                         unfocusedTextColor = Color(0xffeaeaea),
-                        focusedLabelColor = Color(0xFF80571F),
                     ),
                 )
 
@@ -256,7 +246,7 @@ fun Dodaj(nav: NavHostController, viewModel : TaskViewModel)
                     nav.navigate(Screen.Zadania.route)
                 }
 
-            },colors= ButtonDefaults.buttonColors(containerColor = Color(0xFF80571F)))
+            },)
             {Text("Dodaj zadanie")}
         }
     }
