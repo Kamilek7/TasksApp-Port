@@ -34,7 +34,7 @@ import androidx.navigation.NavHostController
 fun checkVals(login:String,  haslo:String) : String
 {
     if (login=="" && haslo=="")
-        return "Wpisz login i hasło!"
+        return "Wpisz login i hasło"
     else if (login=="")
         return "Wpisz login"
     else if (haslo=="")
