@@ -60,7 +60,7 @@ fun MainNav(viewModel : TaskViewModel)
     LaunchedEffect(uiState.ID)
     {
         val currentRoute = navController.currentDestination?.route
-        if (uiState.ID!=null && currentRoute?.startsWith("main") != true)
+        if (uiState.ID!=0 && currentRoute?.startsWith("main") != true)
         {
             navController.navigate("main")
             {
@@ -68,7 +68,7 @@ fun MainNav(viewModel : TaskViewModel)
                 launchSingleTop = true
             }
         }
-        else if (uiState.ID==null && currentRoute?.startsWith("auth") != true)
+        else if (uiState.ID==0 && currentRoute?.startsWith("auth") != true)
         {
             navController.navigate("auth") {
                 popUpTo("main") { inclusive = true }

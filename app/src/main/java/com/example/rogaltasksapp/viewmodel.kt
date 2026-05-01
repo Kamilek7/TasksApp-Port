@@ -4,7 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import com.google.gson.Gson
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 data class UiState(
@@ -22,32 +27,31 @@ data class UiState(
     var wpisyHarmo: List<Harmonogram> = emptyList(),
     val errors: String? = null,
     val info: String? = null,
-    val ID: Int? = null
+    val ID: Int = 0
 )
 
-class ZadaniaRepository(private val apiService: ApiService) {
-    suspend fun getTasks(id:Int,data:String): List<Task> = apiService.getTasks(id).zadania
-    suspend fun addTask(id:Int, req : AddTaskPOST) = apiService.addTask(id, req)
-    suspend fun deleteTask(id:Int) = apiService.deleteTask(id)
-    suspend fun finishTask(id:Int) = apiService.finishTask(id)
-    suspend fun login(request : LoginPOST) = apiService.login(request)
-    suspend fun register(request : LoginPOST) = apiService.register(request)
-    suspend fun getHarmo(id:Int) = apiService.getHarmo(id)
-    suspend fun addHarmo(id:Int, request: HarmoPOST) = apiService.addHarmo(id,request)
-    suspend fun editHarmo(id:Int, request: HarmoPOST) = apiService.editHarmo(id,request)
-}
-
-class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
+@HiltViewModel
+class TaskViewModel @Inject constructor(val repository: ZadaniaRepository, val settingsRepo: SettingsRepository) : ViewModel()
 {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     private var pollingJob: Job? = null
 
     init {
+        viewModelScope.launch{
+            settingsRepo.loginFlow.collect {id -> _uiState.update {it.copy(ID=id)}
+                if (id!=0)
+                {
+                    getTasks("any")
+                    repository.updateFCM(id, Firebase.messaging.token.await())
+                }
+
+            }
+        }
         pollingJob = viewModelScope.launch{
             while (isActive)
             {
-                if (uiState.value.ID!=null)
+                if (uiState.value.ID!=0)
                     getTasks("any")
                 delay(5 * 60 * 1000L)
             }
@@ -60,7 +64,7 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
         try
         {
             val gson = Gson()
-            val response = repository.getTasks(uiState.value.ID?:0, data)
+            val response = repository.getTasks(uiState.value.ID, data)
             val tasks = response.map { task ->
                 val childrenList: List<Child> =
                     gson.fromJson(task.children, Array<Child>::class.java).toList()
@@ -68,7 +72,6 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
                 task to childrenList
             }
             delay(500)
-            Log.d("VIEWMODEL", "Tasks size: ${tasks.size}")
             _uiState.update{it.copy(isLoading = false, zadania = tasks)}
         }
         catch(e: Exception)
@@ -81,7 +84,7 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
     {
         viewModelScope.launch {
             try {
-                val response = repository.addTask(uiState.value.ID?:0, req)
+                val response = repository.addTask(uiState.value.ID, req)
                 delay(200)
                 getTasks("any")
 
@@ -152,7 +155,8 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
                 val response = repository.login(post)
                 if (response.isSuccessful)
                 {
-                    _uiState.update{state -> state.copy(ID = response.body()?.dane)}
+                    _uiState.update{state -> state.copy(ID = response.body()?.dane?:0)}
+                    settingsRepo.setLogin(uiState.value.ID)
                     getTasks( "any")
                 }
                 else
@@ -175,7 +179,11 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
     }
     fun logout()
     {
-        _uiState.update{state -> state.copy(ID = null)}
+        viewModelScope.launch {
+            repository.updateFCM(_uiState.value.ID, "")
+            _uiState.update { state -> state.copy(ID = 0) }
+            settingsRepo.setLogin(uiState.value.ID)
+        }
     }
 
     fun register(login : String, haslo:String)
@@ -187,7 +195,7 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
                 if (response.isSuccessful)
                 {
                     val responseLog = repository.login(post)
-                    _uiState.update{state -> state.copy(ID = responseLog.body()?.dane)}
+                    _uiState.update{state -> state.copy(ID = responseLog.body()?.dane?:0)}
                     getTasks("any")
                 }
                 else
@@ -215,7 +223,7 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
             _uiState.update{it.copy(isHarmoLoading = true)}
             try{
 
-                val response = repository.getHarmo(uiState.value.ID?:0)
+                val response = repository.getHarmo(uiState.value.ID)
                 _uiState.update { state-> state.copy(wpisyHarmo = response.harmonogram) }
             }
             catch (e: Exception)
@@ -231,7 +239,7 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
         viewModelScope.launch{
             _uiState.update{it.copy(isHarmoLoading = true)}
             try{
-                val response = repository.addHarmo(uiState.value.ID?:0, request)
+                val response = repository.addHarmo(uiState.value.ID, request)
                 getHarmo()
             }
             catch (e: Exception)
@@ -257,16 +265,4 @@ class TaskViewModel(val repository: ZadaniaRepository) : ViewModel()
         }
     }
 
-}
-
-class TaskViewModelFactory(private val repo : ZadaniaRepository) : ViewModelProvider.Factory
-{
-    override fun <T: ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TaskViewModel::class.java))
-        {
-            @Suppress("UNCHECKED_CAST")
-            return TaskViewModel(repo) as T
-        }
-        throw IllegalArgumentException("Nieznany ViewModel")
-    }
 }

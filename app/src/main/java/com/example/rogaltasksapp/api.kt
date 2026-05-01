@@ -97,16 +97,7 @@ interface ApiService
     suspend fun addHarmo(@Path("id") id: Int, @Body request : HarmoPOST)
     @PATCH(value="harmonogramEdit/{id}")
     suspend fun editHarmo(@Path("id") id: Int, @Body request : HarmoPOST)
-}
 
-object RetroFitInstance {
-    private const val BASE_URL = "https://tasks-backend.rogalrogalrogalrogal.online/"
-
-    val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
-    }
+    @PATCH(value="updateFCM/{id}")
+    suspend fun updateFCM(@Path("id") id: Int, @Body request : String)
 }
