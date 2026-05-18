@@ -1,7 +1,9 @@
 package com.example.rogaltasksapp
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -57,9 +60,10 @@ fun Login(nav: NavHostController, viewModel : TaskViewModel)
         Modifier.fillMaxWidth(),
     )
     {
-            padding->
+            padding-> if (uiState.internet)
         Column(modifier = Modifier.padding(padding).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally)
         {
+            Text(uiState.internet.toString())
             Text("Zaloguj się", fontSize = 22.sp)
             Spacer(Modifier.height(24.dp))
             Text("Login", fontSize = 22.sp)
@@ -109,6 +113,21 @@ fun Login(nav: NavHostController, viewModel : TaskViewModel)
             })
             {Text("Zaloguj się")}
         }
+        else
+    {
+        Box(contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(padding).fillMaxSize()
+        )
+        {
+            Column(horizontalAlignment = Alignment.CenterHorizontally)
+            {
+                Text("Sprawdź połączenie z internetem", color=ErrorCol)
+                CircularProgressIndicator()
+
+            }
+
+        }
+    }
     }
 
 }

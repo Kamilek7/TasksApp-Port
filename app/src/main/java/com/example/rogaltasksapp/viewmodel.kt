@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
 data class UiState(
@@ -27,23 +29,33 @@ data class UiState(
     var wpisyHarmo: List<Harmonogram> = emptyList(),
     val errors: String? = null,
     val info: String? = null,
-    val ID: Int = 0
+    val ID: Int = 0,
+    val internet: Boolean = true
 )
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(val repository: ZadaniaRepository, val settingsRepo: SettingsRepository) : ViewModel()
+class TaskViewModel @Inject constructor(val repository: ZadaniaRepository, val settingsRepo: SettingsRepository, private val internetConnection: InternetConnection, val daoRepo: DaoRepository) : ViewModel()
 {
+
+
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     private var pollingJob: Job? = null
 
     init {
+
+        viewModelScope.launch{
+            internetConnection.connected.collect{
+                    value -> _uiState.update{it.copy(internet=value)}
+            }
+        }
         viewModelScope.launch{
             settingsRepo.loginFlow.collect {id -> _uiState.update {it.copy(ID=id)}
                 if (id!=0)
                 {
                     getTasks("any")
-                    repository.updateFCM(id, Firebase.messaging.token.await())
+                    getHarmo()
+                    updateFCM(id)
                 }
 
             }
@@ -58,39 +70,76 @@ class TaskViewModel @Inject constructor(val repository: ZadaniaRepository, val s
 
         }
     }
+
+    private suspend fun updateFCM(id:Int)
+    {
+        if (uiState.value.internet)
+            repository.updateFCM(id, Firebase.messaging.token.await())
+    }
+    private suspend fun updateDAO()
+    {
+        try
+        {
+            val res = repository.getTasksBasic(uiState.value.ID)
+            daoRepo.syncTasks(res)
+
+        }
+        catch (e:Exception)
+        {
+            _uiState.update{it.copy(errors = "Błąd: ${e.message}")}
+        }
+    }
     private suspend fun getTasks(data:String)
     {
         _uiState.update{it.copy(isLoading = true)}
-        try
-        {
-            val gson = Gson()
-            val response = repository.getTasks(uiState.value.ID, data)
-            val tasks = response.map { task ->
-                val childrenList: List<Child> =
-                    gson.fromJson(task.children, Array<Child>::class.java).toList()
+        if (_uiState.value.internet)
+            try
+            {
+                val gson = Gson()
+                val response = repository.getTasks(uiState.value.ID, data)
+                val tasks = response.map { task ->
+                    val childrenList: List<Child> =
+                        gson.fromJson(task.children, Array<Child>::class.java).toList()
 
-                task to childrenList
+                    task to childrenList
+                }
+                updateDAO()
+
+                delay(500)
+                _uiState.update{it.copy(isLoading = false, zadania = tasks)}
             }
-            delay(500)
-            _uiState.update{it.copy(isLoading = false, zadania = tasks)}
-        }
-        catch(e: Exception)
+            catch(e: Exception)
+            {
+                _uiState.update{it.copy(isLoading = false, errors = "Błąd: ${e.message}")}
+            }
+        else
         {
-            _uiState.update{it.copy(isLoading = false, errors = "Błąd: ${e.message}")}
+            val results = daoRepo.getTasks(uiState.value.ID).map{ item-> val children = item.children
+                val ratio = if (children.isNotEmpty()){
+                    children.map {it.status}.average()
+                } else 0.0
+                Task( item.parent.ID, item.parent.nazwa, item.parent.data,"", ratio, item.parent.parentID) to children.map {
+                    Child(it.ID, it.data, it.nazwa, it.status)
+                }
+            }
+
+            _uiState.update{it.copy(isLoading = false, zadania=results)}
         }
     }
     // Pozniej mozna dodac taka opcje ze na ekranie bedzie napis tego co zwraca api
     fun addTask(req: AddTaskPOST)
     {
         viewModelScope.launch {
-            try {
-                val response = repository.addTask(uiState.value.ID, req)
-                delay(200)
-                getTasks("any")
+            if (uiState.value.internet)
+                try {
+                    val response = repository.addTask(uiState.value.ID, req)
+                    delay(200)
+                    getTasks("any")
 
-            } catch (e: Exception) {
-                Log.e("API", "Exception: ${e.message}")
-            }
+                } catch (e: Exception) {
+                    Log.e("API", "Exception: ${e.message}")
+                }
+
         }
     }
     fun deleteTaskLocal(taskId: Int) {
@@ -220,16 +269,35 @@ class TaskViewModel @Inject constructor(val repository: ZadaniaRepository, val s
     fun getHarmo()
     {
         viewModelScope.launch{
-            _uiState.update{it.copy(isHarmoLoading = true)}
-            try{
-
-                val response = repository.getHarmo(uiState.value.ID)
-                _uiState.update { state-> state.copy(wpisyHarmo = response.harmonogram) }
-            }
-            catch (e: Exception)
+            if (uiState.value.internet)
             {
-                Log.e("HARMONOGRAM", "Exception: ${e.message}")
+                _uiState.update{it.copy(isHarmoLoading = true)}
+                try{
+
+                    val response = repository.getHarmo(uiState.value.ID)
+                    _uiState.update { state-> state.copy(wpisyHarmo = response.harmonogram) }
+                    try{
+                        daoRepo.syncHarmo(response.harmonogram)
+                    }
+                    catch(e1: Exception)
+                    {
+                        Log.e("DAOSync", "Exception: ${e1.message}")
+                    }
+                }
+                catch (e: Exception)
+                {
+                    Log.e("HARMONOGRAM", "Exception: ${e.message}")
+                }
             }
+            else
+                try{
+                    val re = daoRepo.getHarmo(uiState.value.ID)
+                    _uiState.update { state-> state.copy(wpisyHarmo = re) }
+                }
+                catch (e: Exception)
+                {
+                    Log.e("DAO", "Exception: ${e.message}")
+                }
             _uiState.update{it.copy(isHarmoLoading = false)}
         }
     }

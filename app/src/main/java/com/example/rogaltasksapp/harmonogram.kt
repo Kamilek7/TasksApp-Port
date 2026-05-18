@@ -127,7 +127,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
 {
     val currentTime = Calendar.getInstance()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val harmo by remember(uiState.wpisyHarmo){ derivedStateOf { listOf(Harmonogram(0,"Dodaj nowy" )) + uiState.wpisyHarmo  } }
+    val harmo by remember(uiState.wpisyHarmo){ derivedStateOf { listOf(Harmonogram(0,"Dodaj nowy", uzytkownik = 0 )) + uiState.wpisyHarmo  } }
     var selectExpanded by remember {mutableStateOf(false)}
     var selectedName by remember(harmo) {mutableStateOf(harmo[0].nazwa)}
     var selectedID by remember {mutableStateOf(0)}
@@ -234,7 +234,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                                         else
                                         {
                                             selected= options[1]
-                                            temp?.days?.forEach {it -> dniTygodnia[it.id] =dniTygodnia[it.id].copy(check = true,hour=it.hour, minute=it.minute)
+                                            temp?.days?.forEach {it -> dniTygodnia[it.id?:0] =dniTygodnia[it.id?:0].copy(check = true,hour=it.hour?:12, minute=it.minute?:12)
                                                 }
                                         }
                                     }
@@ -526,7 +526,7 @@ fun Harmonogram(nav: NavHostController, viewModel : TaskViewModel)
                         if (selected == options[0]) json =  JSONifyDataAddDay(
                             String.format(Locale.getDefault(), "%02d:%02d", timePickerDayState.hour,timePickerDayState.minute), intervalSelect.toInt(), selectedStartDate)
                         else json = JSONifyDataAddWeeks(dniTygodnia, intervalSelect.toInt())
-                        viewModel.editHarmo(request= HarmoPOST(nazwa = newName, dniD=json), harmoID = selectedID)
+                        viewModel.editHarmo(request= HarmoPOST(nazwa = if (newName=="") selectedName else newName, dniD=json), harmoID = selectedID)
                         nav.navigate(Screen.Zadania.route)
 
                     })

@@ -26,6 +26,7 @@ class SettingsRepository @Inject constructor (@ApplicationContext private val co
 }
 
 class ZadaniaRepository @Inject constructor(private val apiService: ApiService) {
+    suspend fun getTasksBasic(id:Int): List<ZadaniaEntity> = apiService.getTasksBasic(id).zadania
     suspend fun getTasks(id:Int,data:String): List<Task> = apiService.getTasks(id).zadania
     suspend fun addTask(id:Int, req : AddTaskPOST) = apiService.addTask(id, req)
     suspend fun deleteTask(id:Int) = apiService.deleteTask(id)
@@ -36,4 +37,17 @@ class ZadaniaRepository @Inject constructor(private val apiService: ApiService) 
     suspend fun addHarmo(id:Int, request: HarmoPOST) = apiService.addHarmo(id,request)
     suspend fun editHarmo(id:Int, request: HarmoPOST) = apiService.editHarmo(id,request)
     suspend fun updateFCM(id: Int, request : String) = apiService.updateFCM(id, request)
+}
+
+
+class DaoRepository @Inject constructor(
+    private val rogalDao: RogalDao
+)
+{
+    suspend fun getTasks(ID:Int): List<ParentWithChildren> = rogalDao.getParentsWithChildren(ID)
+
+    suspend fun syncTasks(list :List<ZadaniaEntity>) = rogalDao.syncTasks(list)
+    suspend fun syncHarmo(list:List<Harmonogram>) = rogalDao.syncHarmo(list)
+    suspend fun getHarmo(ID:Int): List<Harmonogram> = rogalDao.getHarmo(ID)
+
 }
